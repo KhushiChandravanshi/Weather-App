@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #add9e0, #8ddbe0);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: #09020e;
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
+            background-color: white;
+            border: 2px solid black;
+            transition: transform 0.2s, box-shadow 0.2s;
+            max-width: 500px;
+            border-style: dashed;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 40px rgba(148, 6, 6, 0.3);
+        }
+
+        h1 {
+    margin-bottom: 20px;
+    color: #0da019;
+    font-size: 2.5rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    font-weight: bold; /* Make the text bold */
+    font-style: italic; /* Make the text italic */
+    letter-spacing: 2px; /* Add some spacing between letters */
+    background: linear-gradient(90deg, #06617c, #85bbce); /* Gradient background */
+    -webkit-background-clip: text; /* Clip background to text */
+    -webkit-text-fill-color: transparent; /* Make the text color transparent */
+    animation: pulse 1.5s infinite; /* Add a pulsing animation */
+}
+
+/* Animation for pulsing effect */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            color: white;
+            background: linear-gradient(45deg, #e0f0ee, #bec4ab);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #b66509, #d6d5a5);
+            transform: scale(1.1);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #weather {
+            font-size: 24px;
+            color: #43bb0b;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: opacity 0.5s;
+        }
+
+        #out {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        @media (max-width: 576px) {
+            h1 {
+                font-size: 2rem;
+            }
+            button {
+                font-size: 16px;
+            }
+            #weather {
+                font-size: 20px;
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+            background-color: #85bebe;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <button class="btn" onClick="geolocation()">Get Location</button>
+        <p id="out" class="fade-in"></p>
+        
+        <!-- Carousel -->
+        <div id="weatherCarousel" class="carousel slide" data-ride="carousel">
+            <div class="carousel-inner" id="carouselContent"></div>
+            <a class="carousel-control-prev" href="#weatherCarousel" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#weatherCarousel" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let x = document.getElementById('out');
+        let carouselContent = document.getElementById('carouselContent');
+
+        function geolocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else {
+                x.innerText = "Geo Not Supported";
+            }
+        }
+
+        async function showPosition(data) {
+            let latitude = data.coords.latitude;
+            let longitude = data.coords.longitude;
+            x.innerText = `Latitude: ${latitude}, Longitude: ${longitude}`;
+            const url = `https://api.openweathermap.org/data/2.5/forecast/daily?lat=${latitude}&lon=${longitude}&mode=json&units=metric&cnt=5&appid=fbf712a5a83d7305c3cda4ca8fe7ef29`;
+
+            const response = await fetch(url, { method: 'GET' });
+            const weatherData = await response.json();
+            let cityName = weatherData.city.name;
+            carouselContent.innerHTML = '';
+
+            weatherData.list.forEach((day, index) => {
+                let date = new Date(day.dt * 1000).toLocaleDateString();
+                let temp = `${day.temp.day} °C`;
+                let weatherCondition = day.weather[0].description;
+
+                let itemClass = index === 0 ? 'carousel-item active' : 'carousel-item';
+                carouselContent.innerHTML += `
+                    <div class="${itemClass}">
+                        <div class="d-block w-100" style="text-align:center;">
+                            <h5>${date}</h5>
+                            <p>${temp} - ${weatherCondition}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            carouselContent.classList.add('fade-in');
+            x.classList.add('fade-in');
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
